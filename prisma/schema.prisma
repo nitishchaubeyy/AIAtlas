@@ -68,7 +68,7 @@ model Model {
   provider           Provider   @relation(fields: [providerId], references: [id])
   modelTags          ModelTag[]
   tools              Tool[]
-
+  @@unique([providerId, name])
   @@map("models")
 }
 
