@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { mockModels } from "@/lib/mock-data";
 import { slugify } from "@/lib/utils";
 
@@ -13,7 +14,14 @@ export async function GET(request: Request) {
     const license = searchParams.get("license");
     const modality = searchParams.get("modality");
     const search = searchParams.get("search");
-    const sort = searchParams.get("sort") || "benchmarkGpqa";
+    // Validate sort against the same allowlist used by the DB path so the
+    // mock-data fallback cannot be exploited with prototype-polluting keys.
+    const allowedSorts = [
+        "benchmarkGpqa", "benchmarkMmlu", "name", "contextWindow",
+        "inputPricePerMtok", "outputPricePerMtok", "speedToksPerSec", "createdAt",
+    ];
+    const rawSort = searchParams.get("sort") ?? "";
+    const sort = allowedSorts.includes(rawSort) ? rawSort : "benchmarkGpqa";
     const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
     const offset = parseInt(searchParams.get("offset") || "0");
 
@@ -57,12 +65,8 @@ export async function GET(request: Request) {
             ];
         }
 
-        // Validate sort field against allowed columns
-        const allowedSorts = [
-            "benchmarkGpqa", "benchmarkMmlu", "name", "contextWindow",
-            "inputPricePerMtok", "outputPricePerMtok", "speedToksPerSec", "createdAt",
-        ];
-        const orderField = allowedSorts.includes(sort) ? sort : "benchmarkGpqa";
+        // sort is already validated against allowedSorts above.
+        const orderField = sort;
 
         const [models, total] = await Promise.all([
             prisma.model.findMany({
@@ -120,6 +124,22 @@ export async function POST(request: Request) {
         });
 
         const slug = slugify(name);
+        const existingModel = await prisma.model.findUnique({
+            where: {
+                slug,
+            },
+        });
+        
+        if (existingModel) {
+            return NextResponse.json(
+                {
+                    error: "A model with this name already exists",
+                },
+                {
+                    status: 409,
+                }
+            );
+        }
 
         // Create model with pending status (isVerified: false)
         const model = await prisma.model.create({
@@ -166,6 +186,27 @@ export async function POST(request: Request) {
         );
     } catch (err) {
         console.error("POST /api/models error:", err);
-        return NextResponse.json({ error: "Failed to submit model" }, { status: 500 });
+        if (
+            err instanceof Prisma.PrismaClientKnownRequestError &&
+            (err as Prisma.PrismaClientKnownRequestError).code === "P2002"
+        ) {
+            return NextResponse.json(
+                {
+                    error: "A model with this name already exists",
+                },
+                {
+                    status: 409,
+                }
+            );
+        }
+
+        return NextResponse.json(
+            {
+                error: "Failed to submit model",
+            },
+            {
+                status: 500,
+            }
+        );
     }
 }
