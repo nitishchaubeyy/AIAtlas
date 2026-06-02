@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { mockModels } from "@/lib/mock-data";
 import { slugify } from "@/lib/utils";
 
@@ -123,6 +124,22 @@ export async function POST(request: Request) {
         });
 
         const slug = slugify(name);
+        const existingModel = await prisma.model.findUnique({
+            where: {
+                slug,
+            },
+        });
+        
+        if (existingModel) {
+            return NextResponse.json(
+                {
+                    error: "A model with this name already exists",
+                },
+                {
+                    status: 409,
+                }
+            );
+        }
 
         // Create model with pending status (isVerified: false)
         const model = await prisma.model.create({
@@ -169,6 +186,27 @@ export async function POST(request: Request) {
         );
     } catch (err) {
         console.error("POST /api/models error:", err);
-        return NextResponse.json({ error: "Failed to submit model" }, { status: 500 });
+        if (
+            err instanceof Prisma.PrismaClientKnownRequestError &&
+            (err as Prisma.PrismaClientKnownRequestError).code === "P2002"
+        ) {
+            return NextResponse.json(
+                {
+                    error: "A model with this name already exists",
+                },
+                {
+                    status: 409,
+                }
+            );
+        }
+
+        return NextResponse.json(
+            {
+                error: "Failed to submit model",
+            },
+            {
+                status: 500,
+            }
+        );
     }
 }
