@@ -114,6 +114,22 @@ export async function POST(request: Request) {
             update: {},
             create: { name: provider },
         });
+        const duplicateModel = await prisma.model.findFirst({
+            where: {
+                providerId: providerRecord.id,
+                name,
+            },
+        });
+        if (duplicateModel) {
+            return NextResponse.json(
+                {
+                    error: "This model already exists for the selected provider",
+                },
+                {
+                    status: 409,
+                }
+            );
+        }
 
         // Find or create the user record
         const githubUsername = (session.user.name ?? session.user.email ?? "unknown").replace(/\s+/g, "-").toLowerCase();
@@ -133,7 +149,7 @@ export async function POST(request: Request) {
         if (existingModel) {
             return NextResponse.json(
                 {
-                    error: "A model with this name already exists",
+                    error: "This model already exists for the selected provider",
                 },
                 {
                     status: 409,
@@ -192,7 +208,7 @@ export async function POST(request: Request) {
         ) {
             return NextResponse.json(
                 {
-                    error: "A model with this name already exists",
+                    error: "This model already exists for the selected provider",
                 },
                 {
                     status: 409,
