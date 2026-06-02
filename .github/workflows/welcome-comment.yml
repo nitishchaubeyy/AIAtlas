@@ -1,0 +1,33 @@
+name: Welcome on First Comment
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  welcome-commenter:
+    runs-on: ubuntu-latest
+    # Only run for first-time commenters (not the repo owner or bots)
+    if: >
+      github.event.comment.user.login != github.repository_owner &&
+      !contains(github.event.comment.user.login, '[bot]')
+    steps:
+      - name: Post thank-you on comment
+        uses: peter-evans/create-or-update-comment@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Hey @${{ github.event.comment.user.login }}! 👋
+
+            Thanks for jumping into the conversation — every comment helps move things forward! 💬
+
+            While you're here:
+
+            - ⭐ **Have you starred the repo yet?** It takes 2 seconds and makes a huge difference — [star AIAtlas here](https://github.com/AditthyaSS/AIAtlas)!
+            - 📖 Check out the [Contributing Guide](https://github.com/AditthyaSS/AIAtlas/blob/main/CONTRIBUTING.md) if you'd like to get more involved.
+            - 🔀 Want to work on this? Leave a comment and we'll assign it to you!
+
+            We're glad you're here — the community grows one contribution at a time. 🌱
+
+            — [@AditthyaSS](https://github.com/AditthyaSS)

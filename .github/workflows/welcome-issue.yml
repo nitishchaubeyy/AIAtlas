@@ -1,0 +1,30 @@
+name: Welcome on New Issue
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  welcome-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post welcome comment on new issue
+        uses: peter-evans/create-or-update-comment@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Hey @${{ github.event.issue.user.login }}! 👋
+
+            Thanks for opening this issue — we really appreciate you taking the time to contribute to **AIAtlas**! 🙌
+
+            A few things to help us move forward quickly:
+
+            - ⭐ **If you haven't already, please [star the repo](https://github.com/AditthyaSS/AIAtlas)!** It helps more people discover the project and keeps our community growing.
+            - 📖 Take a moment to read the [Contributing Guide](https://github.com/AditthyaSS/AIAtlas/blob/main/CONTRIBUTING.md) — it covers everything you need to know.
+            - 💬 If you're interested in working on this, drop a comment below and I'll assign it to you!
+            - 🔍 Please make sure you've searched for existing issues to avoid duplicates.
+
+            Every issue matters — thank you for helping make AIAtlas better! 🚀
+
+            — [@AditthyaSS](https://github.com/AditthyaSS)
