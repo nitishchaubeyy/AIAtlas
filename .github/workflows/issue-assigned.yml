@@ -1,0 +1,63 @@
+name: Issue Assigned Notification
+
+on:
+  issues:
+    types: [assigned]
+
+permissions:
+  issues: write
+
+jobs:
+  notify-others:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify other interested commenters
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const assignee = context.payload.assignee.login;
+            const owner = context.repo.owner;
+
+            // Get all comments on this issue
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              per_page: 100,
+            });
+
+            // Collect unique commenters excluding: assignee, repo owner, bots
+            const interested = new Set();
+            for (const comment of comments.data) {
+              const login = comment.user.login;
+              if (
+                login !== assignee &&
+                login !== owner &&
+                login !== 'github-actions[bot]' &&
+                !login.includes('[bot]') &&
+                comment.user.type !== 'Bot'
+              ) {
+                interested.add(login);
+              }
+            }
+
+            if (interested.size === 0) return;
+
+            const mentions = [...interested].map(u => `@${u}`).join(', ');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: `Hey ${mentions} — just letting you know this issue has been assigned to @${assignee}. 🎉\n\nIf you're still interested in contributing, keep an eye on it! If @${assignee} doesn't open a PR within 5 days, the issue will become available again.\n\nIn the meantime, check out other [open issues](https://github.com/${context.repo.owner}/${context.repo.repo}/issues?q=is%3Aissue+is%3Aopen+no%3Aassignee) that need help. 💪`
+            });
+
+            // Set assignment timestamp as a label for the timer workflow
+            const labelName = `assigned:${new Date().toISOString().split('T')[0]}`;
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              labels: ['in-progress']
+            }).catch(() => {});

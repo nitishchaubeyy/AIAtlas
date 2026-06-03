@@ -1,19 +1,43 @@
-name: Welcome on First Comment
+name: Welcome First-Time Commenter
 
 on:
   issue_comment:
     types: [created]
 
+permissions:
+  issues: write
+
 jobs:
   welcome-commenter:
     runs-on: ubuntu-latest
-    # Only run for first-time commenters (not the repo owner or bots)
-    if: >
-      github.event.comment.user.login != github.repository_owner &&
-      !contains(github.event.comment.user.login, '[bot]')
+    # Skip the repo owner, bots, and anyone who has commented before
+    if: |
+      ${{
+        github.event.comment.user.login != github.repository_owner &&
+        github.event.comment.user.type != 'Bot' &&
+        !contains(github.event.comment.user.login, '[bot]') &&
+        !contains(github.event.comment.user.login, 'github-actions')
+      }}
     steps:
-      - name: Post thank-you on comment
-        uses: peter-evans/create-or-update-comment@v5
+      - name: Check if first-time commenter
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const commenter = context.payload.comment.user.login;
+            const previousComments = comments.data.filter(
+              c => c.user.login === commenter && c.id !== context.payload.comment.id
+            );
+            core.setOutput('is_first', previousComments.length === 0 ? 'true' : 'false');
+
+      - name: Post thank-you on first comment
+        if: steps.check.outputs.is_first == 'true'
+        uses: peter-evans/create-comment@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.issue.number }}
@@ -26,7 +50,7 @@ jobs:
 
             - ⭐ **Have you starred the repo yet?** It takes 2 seconds and makes a huge difference — [star AIAtlas here](https://github.com/AditthyaSS/AIAtlas)!
             - 📖 Check out the [Contributing Guide](https://github.com/AditthyaSS/AIAtlas/blob/main/CONTRIBUTING.md) if you'd like to get more involved.
-            - 🔀 Want to work on this? Leave a comment and we'll assign it to you!
+            - 🔀 Want to work on this issue? Say **"I'd like to work on this"** and we'll assign it to you!
 
             We're glad you're here — the community grows one contribution at a time. 🌱
 

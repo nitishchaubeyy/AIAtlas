@@ -1,0 +1,138 @@
+name: Issue Assignment Timer
+
+on:
+  schedule:
+    # Runs every day at 09:00 UTC
+    - cron: '0 9 * * *'
+  workflow_dispatch: # Allow manual trigger for testing
+
+permissions:
+  issues: write
+
+jobs:
+  manage-assignments:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Manage stale assignments
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const ASSIGNMENT_DEADLINE_DAYS = 5;
+            const CLOSE_AFTER_REMINDER_DAYS = 2;
+            const now = new Date();
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Get all open assigned issues
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'open',
+              assignee: '*',
+              per_page: 100,
+            });
+
+            for (const issue of issues) {
+              if (!issue.assignee) continue;
+              // Skip PRs
+              if (issue.pull_request) continue;
+
+              const assignee = issue.assignee.login;
+              const comments = await github.rest.issues.listComments({
+                owner, repo,
+                issue_number: issue.number,
+                per_page: 100,
+              });
+
+              // Find the assignment comment timestamp (posted by github-actions)
+              const assignmentComment = comments.data.find(c =>
+                c.user.login === 'github-actions[bot]' &&
+                c.body.includes('has been assigned to')
+              );
+
+              if (!assignmentComment) continue;
+
+              const assignedAt = new Date(assignmentComment.created_at);
+              const daysSinceAssigned = (now - assignedAt) / (1000 * 60 * 60 * 24);
+
+              // Check if assignee has opened a PR linked to this issue
+              const prs = await github.rest.pulls.list({
+                owner, repo,
+                state: 'open',
+                per_page: 100,
+              });
+
+              const linkedPR = prs.data.find(pr =>
+                pr.user.login === assignee &&
+                (pr.body || '').toLowerCase().includes(`#${issue.number}`)
+              );
+
+              if (linkedPR) continue; // Assignee is actively working — skip
+
+              // Check for a reminder comment already posted
+              const reminderComment = comments.data.find(c =>
+                c.user.login === 'github-actions[bot]' &&
+                c.body.includes('friendly reminder')
+              );
+
+              // --- Phase 1: 5 days — warn or reassign ---
+              if (daysSinceAssigned >= ASSIGNMENT_DEADLINE_DAYS && !reminderComment) {
+                // Check if others are interested (have commented)
+                const others = new Set(
+                  comments.data
+                    .filter(c =>
+                      c.user.login !== assignee &&
+                      c.user.login !== owner &&
+                      c.user.login !== 'github-actions[bot]' &&
+                      !c.user.login.includes('[bot]') &&
+                      c.user.type !== 'Bot'
+                    )
+                    .map(c => c.user.login)
+                );
+
+                if (others.size > 0) {
+                  // Others are interested — unassign and open up
+                  await github.rest.issues.removeAssignees({
+                    owner, repo,
+                    issue_number: issue.number,
+                    assignees: [assignee],
+                  });
+
+                  const mentions = [...others].map(u => `@${u}`).join(', ');
+
+                  await github.rest.issues.createComment({
+                    owner, repo,
+                    issue_number: issue.number,
+                    body: `Hey @${assignee} — it's been ${ASSIGNMENT_DEADLINE_DAYS} days since this issue was assigned and we haven't seen a linked PR yet. 🕐\n\nThe issue has been **unassigned** and is now open again.\n\n${mentions} — you expressed interest in this issue! It's available to pick up. Comment **"I'd like to work on this"** and a maintainer will assign it to you. 💪\n\n_If you need more time @${assignee}, feel free to re-comment and request re-assignment._`
+                  });
+                } else {
+                  // No one else interested — send a gentle reminder
+                  await github.rest.issues.createComment({
+                    owner, repo,
+                    issue_number: issue.number,
+                    body: `Hey @${assignee} 👋 — this is a friendly reminder that this issue has been assigned to you for ${ASSIGNMENT_DEADLINE_DAYS} days.\n\nIf you're still working on it, no worries — just drop a quick update so we know it's in progress! 💬\n\nIf you're no longer able to work on it, please unassign yourself so others can pick it up.\n\n_This issue will be automatically closed in ${CLOSE_AFTER_REMINDER_DAYS} days if there's no activity._`
+                  });
+                }
+              }
+
+              // --- Phase 2: reminder + 2 days — close if no activity ---
+              if (reminderComment) {
+                const reminderAt = new Date(reminderComment.created_at);
+                const daysSinceReminder = (now - reminderAt) / (1000 * 60 * 60 * 24);
+
+                if (daysSinceReminder >= CLOSE_AFTER_REMINDER_DAYS) {
+                  await github.rest.issues.createComment({
+                    owner, repo,
+                    issue_number: issue.number,
+                    body: `Closing this issue due to inactivity after assignment. 🔒\n\nIf you'd like to pick this back up, please open a new issue or leave a comment and a maintainer will reopen it. 🙌\n\nThanks for your interest in **AIAtlas**!`
+                  });
+
+                  await github.rest.issues.update({
+                    owner, repo,
+                    issue_number: issue.number,
+                    state: 'closed',
+                    state_reason: 'not_planned',
+                  });
+                }
+              }
+            }
