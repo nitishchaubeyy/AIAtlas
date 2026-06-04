@@ -78,3 +78,10 @@ export function highlightText(text: string, query: string) {
         )
     );
 }
+
+export const modalityIcons: Record<string, string> = {
+  text: "📄",
+  image: "🖼️",
+  audio: "🔊",
+  video: "🎥",
+};
