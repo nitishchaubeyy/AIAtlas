@@ -52,7 +52,9 @@ export async function POST(request: Request) {
             );
         }
 
-        // Validate comment length to prevent oversized text from reaching the database.
+        // Validate and sanitize comment field to prevent spam and ensure data integrity.
+        // Trim whitespace and reject all-whitespace submissions.
+        let sanitizedComment = comment;
         if (comment !== undefined && comment !== null) {
             if (typeof comment !== "string") {
                 return NextResponse.json(
@@ -60,7 +62,17 @@ export async function POST(request: Request) {
                     { status: 400 }
                 );
             }
-            if (comment.length > 2000) {
+            // Trim leading and trailing whitespace
+            sanitizedComment = comment.trim();
+            // Reject submissions that are only whitespace
+            if (sanitizedComment.length === 0 && comment.length > 0) {
+                return NextResponse.json(
+                    { error: "comment cannot contain only whitespace." },
+                    { status: 400 }
+                );
+            }
+            // Enforce maximum length after trimming
+            if (sanitizedComment.length > 2000) {
                 return NextResponse.json(
                     { error: "comment must not exceed 2000 characters." },
                     { status: 400 }
@@ -99,14 +111,14 @@ export async function POST(request: Request) {
             },
             update: {
                 rating: Math.round(rating),
-                comment: comment ?? undefined,
+                comment: sanitizedComment || undefined,
             },
             create: {
                 userId: user.id,
                 entityType,
                 entityId,
                 rating: Math.round(rating),
-                comment: comment ?? undefined,
+                comment: sanitizedComment || undefined,
             },
         });
 
