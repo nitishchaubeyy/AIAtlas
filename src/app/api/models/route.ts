@@ -43,9 +43,7 @@ export async function GET(request: Request) {
         "inputPricePerMtok", "outputPricePerMtok", "speedToksPerSec", "createdAt",
     ];
     const rawSort = searchParams.get("sort") ?? "";
-    const sort = allowedSorts.includes(rawSort) ? rawSort : "benchmarkGpqa";
-    const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
-    const offset = parseInt(searchParams.get("offset") || "0");
+    const sortValidated = allowedSorts.includes(rawSort) ? rawSort : "benchmarkGpqa";
 
     if (!DB_ENABLED) {
         // Fallback: filter mock data
@@ -63,8 +61,8 @@ export async function GET(request: Request) {
             );
         }
         result.sort((a, b) => {
-            const aVal = (a as unknown as Record<string, unknown>)[sort];
-            const bVal = (b as unknown as Record<string, unknown>)[sort];
+            const aVal = (a as unknown as Record<string, unknown>)[sortValidated];
+            const bVal = (b as unknown as Record<string, unknown>)[sortValidated];
             if (aVal === undefined || aVal === null) return 1;
             if (bVal === undefined || bVal === null) return -1;
             return (bVal as number) - (aVal as number);
@@ -87,8 +85,8 @@ export async function GET(request: Request) {
             ];
         }
 
-        // sort is already validated against allowedSorts above.
-        const orderField = sort;
+        // sortValidated is already validated against allowedSorts above.
+        const orderField = sortValidated;
 
         const [models, total] = await Promise.all([
             prisma.model.findMany({
