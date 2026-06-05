@@ -123,6 +123,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "name and provider are required" }, { status: 400 });
         }
 
+        if (typeof name !== "string" || name.trim().length === 0 || name.length > 200) {
+            return NextResponse.json(
+                { error: "name must be a non-empty string between 1 and 200 characters" },
+                { status: 400 }
+            );
+        }
+
         if (!DB_ENABLED) {
             return NextResponse.json(
                 { message: "Contribution received (DB not connected — configure DATABASE_URL to persist).", status: "pending" },
