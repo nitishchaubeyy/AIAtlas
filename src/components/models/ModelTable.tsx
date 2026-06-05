@@ -96,7 +96,9 @@ export function ModelTable({ models, showRank = true }: ModelTableProps) {
                         <SortHeader field="inputPricePerMtok">Input $/M</SortHeader>
                         <SortHeader field="outputPricePerMtok">Output $/M</SortHeader>
                         <SortHeader field="benchmarkGpqa">GPQA</SortHeader>
-                        <SortHeader field="modalities">Modalities</SortHeader>
+                        <th className="px-3 py-3 text-left font-sans font-semibold text-xs uppercase tracking-widest text-atlas-text-muted">
+    Modalities
+                        </th>
                         <th className="px-3 py-3 text-left font-sans font-semibold text-xs uppercase tracking-widest text-atlas-text-muted">
                             License
                         </th>
@@ -158,9 +160,8 @@ export function ModelTable({ models, showRank = true }: ModelTableProps) {
                             <td className="px-3 py-3 text-sm text-atlas-text-secondary">
                                 <div className="flex gap-2">
                                     {model.modalities.map((modality: string) => (
-                                        <span key={modality} className="flex items-center gap-1">
+                                        <span key={modality} className="flex items-center text-lg cursor-help" title={modality}>
                                             {modalityIcons[modality] || "❓"}
-                                            <span className="hidden sm:inline">{modality}</span>
                                         </span>
                                     ))}
                                 </div>
