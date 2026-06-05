@@ -75,6 +75,25 @@ export async function POST(request: Request) {
             );
         }
 
+        // Verify the entity (model or tool) exists before accepting review submission.
+        // Without this check, authenticated users can submit reviews for non-existent
+        // entities, polluting the database with orphaned review records.
+        let entityExists = false;
+        if (entityType === "model") {
+            const model = await prisma.model.findUnique({ where: { id: entityId } });
+            entityExists = !!model;
+        } else if (entityType === "tool") {
+            const tool = await prisma.tool.findUnique({ where: { id: entityId } });
+            entityExists = !!tool;
+        }
+
+        if (!entityExists) {
+            return NextResponse.json(
+                { error: `${entityType} not found` },
+                { status: 404 }
+            );
+        }
+
         // Find or create user
         const githubUsername = (session.user.name ?? session.user.email ?? "unknown").replace(/\s+/g, "-").toLowerCase();
         const user = await prisma.user.upsert({
