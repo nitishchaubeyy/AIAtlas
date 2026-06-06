@@ -1,12 +1,13 @@
 "use client";
 
-import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor } from "@/lib/utils";
+import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor, highlightText  } from "@/lib/utils";
 import { Model } from "@/types";
 import Link from "next/link";
 
 interface ModelCardProps {
     model: Model;
     rank?: number;
+    searchQuery?: string;
 }
 
 export function ModelCard({ model, rank }: ModelCardProps) {
@@ -24,14 +25,14 @@ export function ModelCard({ model, rank }: ModelCardProps) {
                         <div>
                             <div className="flex items-center gap-1.5">
                                 <h3 className="font-sans font-medium text-atlas-text-primary group-hover:text-atlas-green transition-colors">
-                                    {model.name}
-                                </h3>
+  {highlightText(model.name, searchQuery || "")}
+</h3>
                                 {model.isVerified && (
                                     <span className="text-atlas-green text-xs">✓</span>
                                 )}
                             </div>
                             <p className="text-xs text-atlas-text-muted">
-                                {model.provider?.name}
+                                        {highlightText(model.provider?.name || "", searchQuery || "")}
                             </p>
                         </div>
                     </div>
