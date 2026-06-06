@@ -96,7 +96,9 @@ export function ModelTable({ models, showRank = true }: ModelTableProps) {
                         <SortHeader field="inputPricePerMtok">Input $/M</SortHeader>
                         <SortHeader field="outputPricePerMtok">Output $/M</SortHeader>
                         <SortHeader field="benchmarkGpqa">GPQA</SortHeader>
-                        <SortHeader field="modalities">Modalities</SortHeader>
+                        <th className="px-3 py-3 text-left font-sans font-semibold text-xs uppercase tracking-widest text-atlas-text-muted">
+                            Modalities
+                        </th>
                         <th className="px-3 py-3 text-left font-sans font-semibold text-xs uppercase tracking-widest text-atlas-text-muted">
                             License
                         </th>
