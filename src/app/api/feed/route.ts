@@ -7,7 +7,13 @@ const DB_ENABLED = !!(process.env.DATABASE_URL && !process.env.DATABASE_URL.incl
 // GET /api/feed — get recent feed events
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
-    const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
+    const rawLimit = searchParams.get("limit");
+    let limit = rawLimit ? parseInt(rawLimit, 10) : 50;
+    if (isNaN(limit) || limit <= 0) {
+        limit = 50; // Fallback to default
+    } else if (limit > 100) {
+        limit = 100; // Enforce maximum
+    }
 
     if (!DB_ENABLED) {
         return NextResponse.json({ data: mockFeedEvents, total: mockFeedEvents.length });
