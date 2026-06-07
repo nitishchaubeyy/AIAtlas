@@ -27,7 +27,7 @@ function renderEventItem(event: FeedEvent, suffix = "") {
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-atlas-green" />
             </span>
 
-            <span className="font-mono text-xs text-atlas-text-muted">
+            <span className="font-mono text-xs text-atlas-text-muted" suppressHydrationWarning>
                 {timeAgo(event.createdAt)}
             </span>
 
@@ -96,7 +96,7 @@ export function FeedTicker({ events }: FeedTickerProps) {
                             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-atlas-green" />
                         </span>
 
-                        <span className="font-mono text-xs text-atlas-text-muted">
+                        <span className="font-mono text-xs text-atlas-text-muted" suppressHydrationWarning>
                             {timeAgo(event.createdAt)}
                         </span>
 

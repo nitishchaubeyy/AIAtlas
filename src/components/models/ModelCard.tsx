@@ -3,6 +3,7 @@
 import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor, highlightText  } from "@/lib/utils";
 import { Model } from "@/types";
 import Link from "next/link";
+import { BookmarkButton } from "@/components/ui/BookmarkButton";
 
 interface ModelCardProps {
     model: Model;
@@ -13,7 +14,8 @@ interface ModelCardProps {
 export function ModelCard({ model, rank, searchQuery }: ModelCardProps) {
     return (
         <Link href={`/models/${model.slug}`}>
-            <div className="group p-4 bg-atlas-bg-card border border-atlas-border rounded-lg hover:border-atlas-border-hover hover:bg-atlas-bg-tertiary transition-all duration-200">
+            <div className="group p-4 bg-atlas-bg-card border border-atlas-border rounded-lg hover:border-atlas-border-hover hover:bg-atlas-bg-tertiary transition-all duration-200 relative">
+                <BookmarkButton entityType="model" entityId={model.id} className="absolute top-2 right-2" />
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
