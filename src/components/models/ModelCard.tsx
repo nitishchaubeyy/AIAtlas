@@ -10,7 +10,7 @@ interface ModelCardProps {
     searchQuery?: string;
 }
 
-export function ModelCard({ model, rank }: ModelCardProps) {
+export function ModelCard({ model, rank, searchQuery }: ModelCardProps) {
     return (
         <Link href={`/models/${model.slug}`}>
             <div className="group p-4 bg-atlas-bg-card border border-atlas-border rounded-lg hover:border-atlas-border-hover hover:bg-atlas-bg-tertiary transition-all duration-200">
