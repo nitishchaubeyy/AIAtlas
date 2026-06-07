@@ -1,0 +1,37 @@
+name: Welcome on New Pull Request
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  welcome-pr:
+    runs-on: ubuntu-latest
+    # Skip bots
+    if: ${{ !contains(github.event.pull_request.user.login, '[bot]') && github.event.pull_request.user.type != 'Bot' }}
+    steps:
+      - name: Post welcome comment on new PR
+        uses: peter-evans/create-comment@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Hey @${{ github.event.pull_request.user.login }}! 👋
+
+            Thank you so much for opening this PR — this is what keeps **AIAtlas** moving forward! 🎉
+
+            Before we review, a quick checklist:
+
+            - [ ] ⭐ **Please [star the repo](https://github.com/AditthyaSS/AIAtlas)** if you haven't already — it helps others discover the project and shows your support for the community!
+            - [ ] 📖 Make sure you've read the [Contributing Guide](https://github.com/AditthyaSS/AIAtlas/blob/main/CONTRIBUTING.md)
+            - [ ] ✅ Your changes are tested and `npm run build` passes locally
+            - [ ] 💬 A clear description of *what* and *why* is included in the PR body
+
+            I review PRs every day and will get back to you within 24 hours. If you have any questions in the meantime, just drop a comment! 💬
+
+            Can't wait to see your work merged — thank you for contributing! 🚀
+
+            — [@AditthyaSS](https://github.com/AditthyaSS)

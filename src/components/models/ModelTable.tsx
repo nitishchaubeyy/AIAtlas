@@ -6,6 +6,7 @@ import { Model, ModelSortField } from "@/types";
 import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor } from "@/lib/utils";
 import { LiveBadge } from "./LiveBadge";
 import { ProviderLogo } from "@/components/models/ProviderLogo"; 
+import { modalityIcons } from "@/lib/utils";
 
 interface ModelTableProps {
     models: Model[];
@@ -96,6 +97,7 @@ export function ModelTable({ models, showRank = true }: ModelTableProps) {
                         <SortHeader field="inputPricePerMtok">Input $/M</SortHeader>
                         <SortHeader field="outputPricePerMtok">Output $/M</SortHeader>
                         <SortHeader field="benchmarkGpqa">GPQA</SortHeader>
+                        <SortHeader field="modalities">Modalities</SortHeader>
                         <th className="px-3 py-3 text-left font-sans font-semibold text-xs uppercase tracking-widest text-atlas-text-muted">
                             License
                         </th>
@@ -155,6 +157,16 @@ export function ModelTable({ models, showRank = true }: ModelTableProps) {
                             </td>
                             <td className={cn("px-3 py-3 font-mono text-sm font-medium", getBenchmarkColor(model.benchmarkGpqa))}>
                                 {formatBenchmark(model.benchmarkGpqa)}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-atlas-text-secondary">
+                                <div className="flex gap-2">
+                                    {model.modalities.map((modality: string) => (
+                                        <span key={modality} className="flex items-center gap-1">
+                                            {modalityIcons[modality] || "❓"}
+                                            <span className="hidden sm:inline">{modality}</span>
+                                        </span>
+                                    ))}
+                                </div>
                             </td>
                             <td className="px-3 py-3 text-sm text-atlas-text-secondary">
                                 {model.license ?? "—"}

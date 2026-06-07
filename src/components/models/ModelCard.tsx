@@ -1,12 +1,13 @@
 "use client";
 
-import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor } from "@/lib/utils";
+import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor, highlightText  } from "@/lib/utils";
 import { Model } from "@/types";
 import Link from "next/link";
 import { ProviderLogo } from "@/components/models/ProviderLogo"; 
 interface ModelCardProps {
     model: Model;
     rank?: number;
+    searchQuery?: string;
 }
 
 export function ModelCard({ model, rank }: ModelCardProps) {
@@ -26,14 +27,15 @@ export function ModelCard({ model, rank }: ModelCardProps) {
                                 <ProviderLogo providerName={model.provider?.name || ""} size={18} />
                                 
                                 <h3 className="font-sans font-medium text-atlas-text-primary group-hover:text-atlas-green transition-colors">
-                                    {model.name}
-                                </h3>
+  {highlightText(model.name, searchQuery || "")}
+</h3>
                                 {model.isVerified && (
                                     <span className="text-atlas-green text-xs mt-0.5">✓</span>
                                 )}
                             </div>
                             <p className="text-xs text-atlas-text-muted mt-0.5 pl-6">
-                                {model.provider?.name}
+                                {highlightText(model.provider?.name || "", searchQuery || "")}
+                            </p>
                             </p>
                         </div>
                     </div>

@@ -63,3 +63,25 @@ export function slugify(text: string): string {
         .replace(/-+/g, "-")
         .trim();
 }
+
+export function highlightText(text: string, query: string) {
+    if (!query) return text;
+
+    const regex = new RegExp(`(${query})`, "gi");
+    return text.split(regex).map((part, i) =>
+        regex.test(part) ? (
+            <mark key={i} className="bg-yellow-300 text-black font-bold rounded px-0.5">
+                {part}
+            </mark>
+        ) : (
+            part
+        )
+    );
+}
+
+export const modalityIcons: Record<string, string> = {
+  text: "📄",
+  image: "🖼️",
+  audio: "🔊",
+  video: "🎥",
+};
