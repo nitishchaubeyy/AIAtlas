@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useInView } from "react-intersection-observer";
+import Link from "next/link";
 import { mockModels, getUniqueProviders, getUniqueModalities, getUniqueLicenses } from "@/lib/mock-data";
 import { ModelFilters as ModelFiltersType, Model } from "@/types";
 import { ModelTable } from "@/components/models/ModelTable";
@@ -80,8 +81,31 @@ export default function ModelsPage() {
                     <p className="text-sm text-atlas-text-muted">Browse and compare AI models</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button onClick={() => setView("table")} className={`p-1.5 rounded transition-colors ${view === "table" ? "text-atlas-text-primary bg-atlas-bg-tertiary" : "text-atlas-text-muted hover:text-atlas-text-secondary"}`}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><line x1="3" x2="21" y1="9" y2="9" /><line x1="3" x2="21" y1="15" y2="15" /><line x1="9" x2="9" y1="3" y2="21" /></svg>
+<Link
+                        href="/models/compare"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-atlas-green/10 text-atlas-green border border-atlas-green/20 rounded hover:bg-atlas-green/20 transition-all font-sans mr-2"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"/>
+                            <line x1="12" y1="20" x2="12" y2="4"/>
+                            <line x1="6" y1="20" x2="6" y2="14"/>
+                        </svg>
+                        Compare Models
+                    </Link>
+                    <button
+                        onClick={() => setView("table")}
+                        className={`p-1.5 rounded transition-colors ${view === "table"
+                                ? "text-atlas-text-primary bg-atlas-bg-tertiary"
+                                : "text-atlas-text-muted hover:text-atlas-text-secondary"
+                            }`}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                            <line x1="3" x2="21" y1="9" y2="9" />
+                            <line x1="3" x2="21" y1="15" y2="15" />
+                            <line x1="9" x2="9" y1="3" y2="21" />
+                        </svg>
+                    </button>
                     </button>
                     <button onClick={() => setView("cards")} className={`p-1.5 rounded transition-colors ${view === "cards" ? "text-atlas-text-primary bg-atlas-bg-tertiary" : "text-atlas-text-muted hover:text-atlas-text-secondary"}`}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="7" x="3" y="3" rx="1" /><rect width="7" height="7" x="14" y="3" rx="1" /><rect width="7" height="7" x="14" y="14" rx="1" /><rect width="7" height="7" x="3" y="14" rx="1" /></svg>

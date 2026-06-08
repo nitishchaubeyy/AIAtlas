@@ -14,17 +14,27 @@ export async function GET(request: Request) {
     const license = searchParams.get("license");
     const modality = searchParams.get("modality");
     const search = searchParams.get("search");
-    const cursor = searchParams.get("cursor"); 
-    
+const cursor = searchParams.get("cursor"); 
+
+    // 💡 Robust Pagination Controls & Fallback Guards
+    const DEFAULT_LIMIT = 10;
+    const MAX_LIMIT = 50;
+
+    const rawLimit = searchParams.get("limit");
+    let limit = rawLimit ? parseInt(rawLimit, 10) : DEFAULT_LIMIT;
+    // NaN Guard & Lower Bounds check
+    if (isNaN(limit) || limit <= 0) {
+        limit = DEFAULT_LIMIT;
+    } else if (limit > MAX_LIMIT) {
+        limit = MAX_LIMIT; // Enforce a hard maximum ceiling to block database exhaustion
+    }
     const allowedSorts = [
         "benchmarkGpqa", "benchmarkMmlu", "name", "contextWindow",
         "inputPricePerMtok", "outputPricePerMtok", "speedToksPerSec", "createdAt",
     ];
     const rawSort = searchParams.get("sort") ?? "";
     const sort = allowedSorts.includes(rawSort) ? rawSort : "benchmarkGpqa";
-    
-    // Clean Limit variable (No duplicates!)
-    const limit = Math.min(parseInt(searchParams.get("limit") || "12"), 50);
+// Removed duplicate limit definition
 
     if (!DB_ENABLED) {
         // Fallback: filter mock data
