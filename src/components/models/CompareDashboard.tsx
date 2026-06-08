@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Model } from "@/types";
 import { mockModels } from "@/lib/mock-data";
 import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor } from "@/lib/utils";
+import jsPDF from "jspdf";
 
 export function CompareDashboard() {
     const searchParams = useSearchParams();
@@ -171,7 +172,14 @@ export function CompareDashboard() {
             ["Released At", ...selectedModels.map((m) => (m.releasedAt ? new Date(m.releasedAt).toLocaleDateString() : "—"))],
         ];
 
-        const content = [headers, ...rows]
+        const timestamp = new Date().toLocaleString();
+
+        const content = [
+            [`Generated At`, timestamp],
+            [],
+            headers,
+            ...rows,
+        ]
             .map((e) => e.map((val) => `"${val}"`).join(","))
             .join("\n");
 
@@ -225,6 +233,120 @@ export function CompareDashboard() {
         document.body.removeChild(link);
     };
 
+    const exportTXT = () => {
+        if (selectedModels.length === 0) return;
+
+        const content = [
+            "AI Atlas - Model Comparison",
+            `Generated on: ${new Date().toLocaleString()}`,
+            "",
+            ...selectedModels.map(
+                (m) => `
+Model: ${m.name}
+Developer: ${m.provider?.name ?? "—"}
+Context Window: ${formatContextWindow(m.contextWindow)}
+Input Price: ${formatPrice(m.inputPricePerMtok)}
+Output Price: ${formatPrice(m.outputPricePerMtok)}
+GPQA Score: ${formatBenchmark(m.benchmarkGpqa)}
+License: ${m.license ?? "—"}
+`
+            ),
+        ].join("\n");
+
+        const blob = new Blob([content], {
+            type: "text/plain;charset=utf-8;",
+        });
+
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "ai-model-comparison.txt";
+        link.click();
+
+        URL.revokeObjectURL(url);
+    };
+
+    const exportPDF = () => {
+        if (selectedModels.length === 0) return;
+
+        const pdf = new jsPDF();
+
+        let y = 20;
+
+        pdf.setFontSize(18);
+        pdf.text("AI Atlas - Model Comparison", 10, y);
+
+        y += 10;
+
+        pdf.setFontSize(10);
+        pdf.text(
+            `Generated on: ${new Date().toLocaleString()}`,
+            10,
+            y
+        );
+
+        y += 15;
+
+        selectedModels.forEach((model) => {
+            pdf.setFontSize(12);
+
+            pdf.text(`Model: ${model.name}`, 10, y);
+            y += 8;
+
+            pdf.setFontSize(10);
+
+            pdf.text(
+                `Developer: ${model.provider?.name ?? "—"}`,
+                10,
+                y
+            );
+            y += 6;
+
+            pdf.text(
+                `Context Window: ${formatContextWindow(model.contextWindow)}`,
+                10,
+                y
+            );
+            y += 6;
+
+            pdf.text(
+                `Input Price: ${formatPrice(model.inputPricePerMtok)}`,
+                10,
+                y
+            );
+            y += 6;
+
+            pdf.text(
+                `Output Price: ${formatPrice(model.outputPricePerMtok)}`,
+                10,
+                y
+            );
+            y += 6;
+
+            pdf.text(
+                `GPQA Score: ${formatBenchmark(model.benchmarkGpqa)}`,
+                10,
+                y
+            );
+            y += 6;
+
+            pdf.text(
+                `License: ${model.license ?? "—"}`,
+                10,
+                y
+            );
+            y += 12;
+
+            if (y > 260) {
+                pdf.addPage();
+                y = 20;
+            }
+        });
+
+        pdf.save("ai-model-comparison.pdf");
+    };
+
     return (
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
             {/* Breadcrumb */}
@@ -264,9 +386,9 @@ export function CompareDashboard() {
                         title="Highlight parameter rows where values differ"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="8" x2="12" y2="12"/>
-                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
                         {highlightDiffs ? "Diff Highlight: On" : "Highlight Differences"}
                     </button>
@@ -276,8 +398,8 @@ export function CompareDashboard() {
                         className="px-3 py-1.5 text-xs font-semibold rounded bg-atlas-bg-secondary text-atlas-text-secondary border border-atlas-border hover:border-atlas-border-hover hover:text-atlas-text-primary transition-all flex items-center gap-1.5"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                            <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                         </svg>
                         Share Link
                     </button>
@@ -286,7 +408,7 @@ export function CompareDashboard() {
                     <div className="relative group">
                         <button className="px-3 py-1.5 text-xs font-semibold rounded bg-atlas-bg-secondary text-atlas-text-secondary border border-atlas-border hover:border-atlas-border-hover hover:text-atlas-text-primary transition-all flex items-center gap-1.5">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
                             </svg>
                             Export
                         </button>
@@ -302,6 +424,18 @@ export function CompareDashboard() {
                                 className="w-full text-left px-3 py-2 text-xs text-atlas-text-secondary hover:text-atlas-text-primary hover:bg-atlas-bg-tertiary border-t border-atlas-border/50 transition-colors"
                             >
                                 Export as MD
+                            </button>
+                            <button
+                                onClick={exportTXT}
+                                className="w-full text-left px-3 py-2 text-xs text-atlas-text-secondary hover:text-atlas-text-primary hover:bg-atlas-bg-tertiary border-t border-atlas-border/50 transition-colors"
+                            >
+                                Export as TXT
+                            </button>
+                            <button
+                                onClick={exportPDF}
+                                className="w-full text-left px-3 py-2 text-xs text-atlas-text-secondary hover:text-atlas-text-primary hover:bg-atlas-bg-tertiary border-t border-atlas-border/50 transition-colors"
+                            >
+                                Export as PDF
                             </button>
                         </div>
                     </div>
@@ -352,7 +486,7 @@ export function CompareDashboard() {
                                                         title="Remove model"
                                                     >
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                                            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                                                         </svg>
                                                     </button>
                                                 </div>
@@ -410,7 +544,7 @@ export function CompareDashboard() {
                                                     className="w-full max-w-[150px] py-2 border border-dashed border-atlas-border hover:border-atlas-green/50 rounded flex flex-col items-center justify-center gap-1 group transition-colors"
                                                 >
                                                     <svg className="w-5 h-5 text-atlas-text-muted group-hover:text-atlas-green transition-colors" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                                        <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
                                                     </svg>
                                                     <span className="text-[11px] font-semibold text-atlas-text-muted group-hover:text-atlas-text-secondary transition-colors">
                                                         Add Model
