@@ -212,7 +212,7 @@ export function ReviewSection({ modelId, modelName, initialReviews = [] }: Revie
                                     </span>
                                     <StarRating value={review.rating} readonly />
                                 </div>
-                                <span className="text-xs font-mono text-atlas-text-muted">
+                                <span className="text-xs font-mono text-atlas-text-muted" suppressHydrationWarning>
                                     {timeAgo(review.createdAt)}
                                 </span>
                             </div>
