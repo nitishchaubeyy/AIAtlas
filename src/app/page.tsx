@@ -69,6 +69,52 @@ export default function HomePage() {
     const providersCount = useCountUp(getUniqueProviders().length);
 
 
+    useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    // Don't fire shortcuts if typing in an input/textarea
+    if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") {
+      return;
+    }
+
+    switch (e.key) {
+      case "/":
+        e.preventDefault();
+        document.querySelector<HTMLInputElement>("input[placeholder*='Search']")?.focus();
+        break;
+      case "j":
+      case "J":
+        e.preventDefault();
+        // custom event to move selection down
+        document.dispatchEvent(new CustomEvent("navigateRow", { detail: "down" }));
+        break;
+      case "k":
+      case "K":
+        e.preventDefault();
+        document.dispatchEvent(new CustomEvent("navigateRow", { detail: "up" }));
+        break;
+      case "Enter":
+        document.dispatchEvent(new CustomEvent("openSelectedRow"));
+        break;
+      case "Escape":
+        // clear search or close modal
+        (document.activeElement as HTMLElement)?.blur();
+        break;
+      default:
+        break;
+    }
+
+    // Command palette shortcut
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      document.dispatchEvent(new CustomEvent("openCommandPalette"));
+    }
+  };
+
+  window.addEventListener("keydown", handleKeyDown);
+  return () => window.removeEventListener("keydown", handleKeyDown);
+}, []);
+
+
     return (
         <div className="min-h-screen">
             {/* Feed Ticker */}
