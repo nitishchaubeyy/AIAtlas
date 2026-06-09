@@ -7,6 +7,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import Image from "next/image";
 
 const navLinks = [
     { href: "/", label: "Leaderboard" },
@@ -136,9 +137,11 @@ export function Navbar() {
                                 <button className="focus:outline-none ring-2 ring-transparent hover:ring-atlas-border rounded-full transition-all">
                                     {session.user.image ? (
                                         // eslint-disable-next-line @next/next/no-img-element
-                                        <img
+                                        <Image
                                             src={session.user.image}
                                             alt={session.user.name ?? "User"}
+                                            width={32}
+                                            height={32}
                                             className="w-8 h-8 rounded-full border border-atlas-border object-cover"
                                         />
                                     ) : (
