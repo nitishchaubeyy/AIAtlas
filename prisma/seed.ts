@@ -72,6 +72,22 @@ async function main() {
         { slug: "mistral-small-3", name: "Mistral Small 3", providerId: providerMap["Mistral AI"], contextWindow: 32000, inputPricePerMtok: 0.1, outputPricePerMtok: 0.3, benchmarkGpqa: 62.1, benchmarkMmlu: 72.5, license: "Apache 2.0", modalities: ["text"], isOpenSource: true, parameterCount: "24B", speedToksPerSec: 130, isVerified: true, tags: ["open-source", "compact", "efficient"] },
         { slug: "gpt-4o-mini", name: "GPT-4o mini", providerId: providerMap["OpenAI"], contextWindow: 128000, inputPricePerMtok: 0.15, outputPricePerMtok: 0.6, benchmarkGpqa: 65.2, benchmarkMmlu: 82.0, license: "Proprietary", modalities: ["text", "image"], isOpenSource: false, speedToksPerSec: 120, isVerified: true, tags: ["efficient", "affordable"] },
         { slug: "claude-haiku-3-5", name: "Claude Haiku 3.5", providerId: providerMap["Anthropic"], contextWindow: 200000, inputPricePerMtok: 0.25, outputPricePerMtok: 1.25, benchmarkGpqa: 60.8, benchmarkMmlu: 75.3, license: "Proprietary", modalities: ["text"], isOpenSource: false, speedToksPerSec: 140, isVerified: true, tags: ["fast", "affordable"] },
+        {
+  slug: "claude-3-5-sonnet",
+  name: "Claude 3.5 Sonnet",
+  providerId: providerMap["Anthropic"],
+  contextWindow: 200000,
+  inputPricePerMtok: 3.0,
+  outputPricePerMtok: 15.0,
+  license: "Proprietary",
+  modalities: ["text", "image"],
+  isOpenSource: false,
+  benchmarkGpqa: 84.1,
+  benchmarkMmlu: 88.5,
+  speedToksPerSec: 72,
+  isVerified: false,
+  tags: ["coding", "balanced"],
+},
     ];
 
     for (const model of modelData) {
