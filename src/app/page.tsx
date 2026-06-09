@@ -10,6 +10,7 @@ import { ModelFilters } from "@/components/models/ModelFilters";
 import { FeedTicker } from "@/components/feed/FeedTicker";
 import { useLiveFeed } from "@/hooks/useLiveFeed";
 import { ModelTableSkeleton, ModelCardSkeleton } from "@/components/ui/Skeletons";
+import { useCountUp } from "@/hooks/useCountUp";
 
 export default function HomePage() {
     const [filters, setFilters] = useState<ModelFiltersType>({});
@@ -64,6 +65,56 @@ export default function HomePage() {
         return result;
     }, [filters, models]);
 
+    const modelsCount = useCountUp(mockModels.length);
+    const providersCount = useCountUp(getUniqueProviders().length);
+
+
+    useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    // Don't fire shortcuts if typing in an input/textarea
+    if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") {
+      return;
+    }
+
+    switch (e.key) {
+      case "/":
+        e.preventDefault();
+        document.querySelector<HTMLInputElement>("input[placeholder*='Search']")?.focus();
+        break;
+      case "j":
+      case "J":
+        e.preventDefault();
+        // custom event to move selection down
+        document.dispatchEvent(new CustomEvent("navigateRow", { detail: "down" }));
+        break;
+      case "k":
+      case "K":
+        e.preventDefault();
+        document.dispatchEvent(new CustomEvent("navigateRow", { detail: "up" }));
+        break;
+      case "Enter":
+        document.dispatchEvent(new CustomEvent("openSelectedRow"));
+        break;
+      case "Escape":
+        // clear search or close modal
+        (document.activeElement as HTMLElement)?.blur();
+        break;
+      default:
+        break;
+    }
+
+    // Command palette shortcut
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      document.dispatchEvent(new CustomEvent("openCommandPalette"));
+    }
+  };
+
+  window.addEventListener("keydown", handleKeyDown);
+  return () => window.removeEventListener("keydown", handleKeyDown);
+}, []);
+
+
     return (
         <div className="min-h-screen">
             {/* Feed Ticker */}
@@ -83,19 +134,20 @@ export default function HomePage() {
                             and repo. Search, compare, and contribute.
                         </p>
                         <div className="flex flex-wrap gap-6 font-mono text-sm">
-                            <div>
-                                <span className="text-2xl font-bold text-atlas-green">{mockModels.length}</span>
-                                <span className="text-atlas-text-muted ml-2">Models tracked</span>
+                        <div>
+                            <span className="text-2xl font-bold text-atlas-green">{modelsCount}</span>
+                            <span className="text-atlas-text-muted ml-2">Models tracked</span>
                             </div>
-                            <div>
-                                <span className="text-2xl font-bold text-atlas-blue">{getUniqueProviders().length}</span>
-                                <span className="text-atlas-text-muted ml-2">Providers</span>
-                            </div>
-                            <div>
-                                <span className="text-2xl font-bold text-atlas-purple">∞</span>
-                                <span className="text-atlas-text-muted ml-2">Contributors</span>
-                            </div>
+                        <div>
+                            <span className="text-2xl font-bold text-atlas-blue">{providersCount}</span>
+                            <span className="text-atlas-text-muted ml-2">Providers</span>
                         </div>
+                        <div>
+                            <span className="text-2xl font-bold text-atlas-purple">∞</span>
+                            <span className="text-atlas-text-muted ml-2">Contributors</span>
+                        </div>
+                        </div>
+
                     </div>
                 </div>
             </section>
