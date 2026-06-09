@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // ✅ needed for navigation
 import { Model, ModelSortField } from "@/types";
-import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor } from "@/lib/utils";
+import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor,getPriceChangeIndicator } from "@/lib/utils";
 import { LiveBadge } from "./LiveBadge";
 import { modalityIcons } from "@/lib/utils";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
@@ -152,10 +152,32 @@ export function ModelTable({ models, showRank = true }: ModelTableProps) {
                                 {model.speedToksPerSec ? `${model.speedToksPerSec} t/s` : "—"}
                             </td>
                             <td className="px-3 py-3 font-mono text-sm text-atlas-text-secondary">
-                                {formatPrice(model.inputPricePerMtok)}
+                                <div className="flex items-center gap-1.5">
+                                    <span>{formatPrice(model.inputPricePerMtok)}</span>
+                                    {(() => {
+                                        const indicator = getPriceChangeIndicator(model.inputPricePerMtok, model.previousInputPrice, model.priceChangedAt);
+                                        if (!indicator) return null;
+                                        return (
+                                            <span title={indicator.tooltip} className={cn("text-xs font-bold cursor-help transition-transform hover:scale-110", indicator.colorClass)}>
+                                                {indicator.symbol}
+                                            </span>
+                                        );
+                                    })()}
+                                </div>
                             </td>
                             <td className="px-3 py-3 font-mono text-sm text-atlas-text-secondary">
-                                {formatPrice(model.outputPricePerMtok)}
+                                <div className="flex items-center gap-1.5">
+                                    <span>{formatPrice(model.outputPricePerMtok)}</span>
+                                    {(() => {
+                                        const indicator = getPriceChangeIndicator(model.outputPricePerMtok, model.previousOutputPrice, model.priceChangedAt);
+                                        if (!indicator) return null;
+                                        return (
+                                            <span title={indicator.tooltip} className={cn("text-xs font-bold cursor-help transition-transform hover:scale-110", indicator.colorClass)}>
+                                                {indicator.symbol}
+                                            </span>
+                                        );
+                                    })()}
+                                </div>
                             </td>
                             <td className={cn("px-3 py-3 font-mono text-sm font-medium", getBenchmarkColor(model.benchmarkGpqa))}>
                                 {formatBenchmark(model.benchmarkGpqa)}
