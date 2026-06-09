@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { mockModels } from "@/lib/mock-data";
 import { slugify } from "@/lib/utils";
 
@@ -13,9 +14,35 @@ export async function GET(request: Request) {
     const license = searchParams.get("license");
     const modality = searchParams.get("modality");
     const search = searchParams.get("search");
-    const sort = searchParams.get("sort") || "benchmarkGpqa";
-    const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
-    const offset = parseInt(searchParams.get("offset") || "0");
+
+    // 💡 Robust Pagination Controls & Fallback Guards
+    const DEFAULT_LIMIT = 10;
+    const MAX_LIMIT = 50;
+    const DEFAULT_OFFSET = 0;
+
+    const rawLimit = searchParams.get("limit");
+    let limit = rawLimit ? parseInt(rawLimit, 10) : DEFAULT_LIMIT;
+    // NaN Guard & Lower Bounds check
+    if (isNaN(limit) || limit <= 0) {
+        limit = DEFAULT_LIMIT;
+    } else if (limit > MAX_LIMIT) {
+        limit = MAX_LIMIT; // Enforce a hard maximum ceiling to block database exhaustion
+    }
+
+    const rawOffset = searchParams.get("offset");
+    let offset = rawOffset ? parseInt(rawOffset, 10) : DEFAULT_OFFSET;
+    // NaN Guard & Negative check
+    if (isNaN(offset) || offset < 0) {
+        offset = DEFAULT_OFFSET;
+    }
+    // Validate sort against the same allowlist used by the DB path so the
+    // mock-data fallback cannot be exploited with prototype-polluting keys.
+    const allowedSorts = [
+        "benchmarkGpqa", "benchmarkMmlu", "name", "contextWindow",
+        "inputPricePerMtok", "outputPricePerMtok", "speedToksPerSec", "createdAt",
+    ];
+    const rawSort = searchParams.get("sort") ?? "";
+    const sort = allowedSorts.includes(rawSort) ? rawSort : "benchmarkGpqa";
 
     if (!DB_ENABLED) {
         // Fallback: filter mock data
@@ -57,20 +84,16 @@ export async function GET(request: Request) {
             ];
         }
 
-        // Validate sort field against allowed columns
-        const allowedSorts = [
-            "benchmarkGpqa", "benchmarkMmlu", "name", "contextWindow",
-            "inputPricePerMtok", "outputPricePerMtok", "speedToksPerSec", "createdAt",
-        ];
-        const orderField = allowedSorts.includes(sort) ? sort : "benchmarkGpqa";
+        // sort is already validated against allowedSorts above.
+        const orderField = sort;
 
         const [models, total] = await Promise.all([
             prisma.model.findMany({
                 where,
                 include: { provider: true },
                 orderBy: { [orderField]: "desc" },
-                take: limit,
-                skip: offset,
+                take: limit, // Safe clean integer guaranteed
+                skip: offset, // Safe clean integer guaranteed
             }),
             prisma.model.count({ where }),
         ]);
@@ -97,6 +120,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "name and provider are required" }, { status: 400 });
         }
 
+        if (typeof name !== "string" || name.trim().length === 0 || name.length > 200) {
+            return NextResponse.json(
+                { error: "name must be a non-empty string between 1 and 200 characters" },
+                { status: 400 }
+            );
+        }
+
         if (!DB_ENABLED) {
             return NextResponse.json(
                 { message: "Contribution received (DB not connected — configure DATABASE_URL to persist).", status: "pending" },
@@ -110,6 +140,22 @@ export async function POST(request: Request) {
             update: {},
             create: { name: provider },
         });
+        const duplicateModel = await prisma.model.findFirst({
+            where: {
+                providerId: providerRecord.id,
+                name,
+            },
+        });
+        if (duplicateModel) {
+            return NextResponse.json(
+                {
+                    error: "This model already exists for the selected provider",
+                },
+                {
+                    status: 409,
+                }
+            );
+        }
 
         // Find or create the user record
         const githubUsername = (session.user.name ?? session.user.email ?? "unknown").replace(/\s+/g, "-").toLowerCase();
@@ -120,6 +166,22 @@ export async function POST(request: Request) {
         });
 
         const slug = slugify(name);
+        const existingModel = await prisma.model.findUnique({
+            where: {
+                slug,
+            },
+        });
+        
+        if (existingModel) {
+            return NextResponse.json(
+                {
+                    error: "This model already exists for the selected provider",
+                },
+                {
+                    status: 409,
+                }
+            );
+        }
 
         // Create model with pending status (isVerified: false)
         const model = await prisma.model.create({
@@ -149,16 +211,19 @@ export async function POST(request: Request) {
             },
         });
 
-        // Create a feed event
-        await prisma.feedEvent.create({
-            data: {
-                userId: user.id,
-                eventType: "model_added",
-                entityType: "model",
-                entityId: model.id,
-                entityName: model.name,
-            },
-        });
+        // Only create feed event for verified models. Pending submissions should not
+        // appear in the public activity feed until reviewed and approved by maintainers.
+        if (model.isVerified) {
+            await prisma.feedEvent.create({
+                data: {
+                    userId: user.id,
+                    eventType: "model_added",
+                    entityType: "model",
+                    entityId: model.id,
+                    entityName: model.name,
+                },
+            });
+        }
 
         return NextResponse.json(
             { message: "Model submitted for review.", data: model, status: "pending" },
@@ -166,6 +231,27 @@ export async function POST(request: Request) {
         );
     } catch (err) {
         console.error("POST /api/models error:", err);
-        return NextResponse.json({ error: "Failed to submit model" }, { status: 500 });
+        if (
+            err instanceof Prisma.PrismaClientKnownRequestError &&
+            (err as Prisma.PrismaClientKnownRequestError).code === "P2002"
+        ) {
+            return NextResponse.json(
+                {
+                    error: "This model already exists for the selected provider",
+                },
+                {
+                    status: 409,
+                }
+            );
+        }
+
+        return NextResponse.json(
+            {
+                error: "Failed to submit model",
+            },
+            {
+                status: 500,
+            }
+        );
     }
 }

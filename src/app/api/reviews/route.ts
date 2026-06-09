@@ -1,8 +1,45 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
+import { getReviewsByEntity } from "@/lib/mock-data";
 
 const DB_ENABLED = !!(process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("[password]"));
+
+export async function GET(request: Request) {
+    const url = new URL(request.url);
+    const entityType = url.searchParams.get("entityType");
+    const entityId = url.searchParams.get("entityId");
+
+    if (!entityType || !entityId) {
+        return NextResponse.json(
+            { error: "entityType and entityId are required" },
+            { status: 400 }
+        );
+    }
+
+    if (!["model", "tool"].includes(entityType)) {
+        return NextResponse.json(
+            { error: "entityType must be 'model' or 'tool'" },
+            { status: 400 }
+        );
+    }
+
+    if (!DB_ENABLED) {
+        return NextResponse.json({ data: getReviewsByEntity(entityType as "model" | "tool", entityId) });
+    }
+
+    try {
+        const reviews = await prisma.review.findMany({
+            where: { entityType, entityId },
+            include: { user: true },
+            orderBy: { createdAt: "desc" },
+        });
+        return NextResponse.json({ data: reviews });
+    } catch (err) {
+        console.error("GET /api/reviews error:", err);
+        return NextResponse.json({ error: "Failed to fetch reviews" }, { status: 500 });
+    }
+}
 
 // POST /api/reviews — submit a review for a model or tool
 export async function POST(request: Request) {
@@ -36,10 +73,73 @@ export async function POST(request: Request) {
             );
         }
 
+        // Validate entityId: must be a non-empty string within a safe length limit.
+        // Without this check an attacker can submit megabyte-length strings or values
+        // that do not correspond to any real entity, polluting the database.
+        if (typeof entityId !== "string" || entityId.trim().length === 0) {
+            return NextResponse.json(
+                { error: "entityId must be a non-empty string." },
+                { status: 400 }
+            );
+        }
+        if (entityId.length > 100) {
+            return NextResponse.json(
+                { error: "entityId must not exceed 100 characters." },
+                { status: 400 }
+            );
+        }
+
+        // Validate and sanitize comment field to prevent spam and ensure data integrity.
+        // Trim whitespace and reject all-whitespace submissions.
+        let sanitizedComment = comment;
+        if (comment !== undefined && comment !== null) {
+            if (typeof comment !== "string") {
+                return NextResponse.json(
+                    { error: "comment must be a string." },
+                    { status: 400 }
+                );
+            }
+            // Trim leading and trailing whitespace
+            sanitizedComment = comment.trim();
+            // Reject submissions that are only whitespace
+            if (sanitizedComment.length === 0 && comment.length > 0) {
+                return NextResponse.json(
+                    { error: "comment cannot contain only whitespace." },
+                    { status: 400 }
+                );
+            }
+            // Enforce maximum length after trimming
+            if (sanitizedComment.length > 2000) {
+                return NextResponse.json(
+                    { error: "comment must not exceed 2000 characters." },
+                    { status: 400 }
+                );
+            }
+        }
+
         if (!DB_ENABLED) {
             return NextResponse.json(
                 { message: "Review received (DB not connected — configure DATABASE_URL to persist).", status: "pending" },
                 { status: 201 }
+            );
+        }
+
+        // Verify the entity (model or tool) exists before accepting review submission.
+        // Without this check, authenticated users can submit reviews for non-existent
+        // entities, polluting the database with orphaned review records.
+        let entityExists = false;
+        if (entityType === "model") {
+            const model = await prisma.model.findUnique({ where: { id: entityId } });
+            entityExists = !!model;
+        } else if (entityType === "tool") {
+            const tool = await prisma.tool.findUnique({ where: { id: entityId } });
+            entityExists = !!tool;
+        }
+
+        if (!entityExists) {
+            return NextResponse.json(
+                { error: `${entityType} not found` },
+                { status: 404 }
             );
         }
 
@@ -51,28 +151,63 @@ export async function POST(request: Request) {
             create: { githubUsername, avatarUrl: session.user.image ?? undefined },
         });
 
-        // Create review
-        const review = await prisma.review.create({
-            data: {
+        // Upsert review: one review per user per entity.
+        // Using upsert prevents a single authenticated user from flooding
+        // the database with duplicate reviews by simply re-submitting the
+        // form. A repeat submission updates the existing record instead of
+        // inserting a new row, keeping the data clean without any external
+        // rate-limit store.
+        const review = await prisma.review.upsert({
+            where: {
+                userId_entityType_entityId: {
+                    userId: user.id,
+                    entityType,
+                    entityId,
+                },
+            },
+            update: {
+                rating: Math.round(rating),
+                comment: sanitizedComment || undefined,
+            },
+            create: {
                 userId: user.id,
                 entityType,
                 entityId,
                 rating: Math.round(rating),
-                comment: comment ?? undefined,
+                comment: sanitizedComment || undefined,
             },
         });
 
-        // Create feed event
-        await prisma.feedEvent.create({
-            data: {
-                userId: user.id,
-                eventType: "review_posted",
-                entityType,
-                entityId,
-                entityName: entityId, // will be enriched client-side
-                metadata: { rating },
-            },
-        });
+        // Only emit a feed event when a new review is created, not on updates.
+        const isNewReview = review.createdAt.getTime() === review.updatedAt.getTime();
+        if (isNewReview) {
+            // Fetch the human-readable entity name
+            let entityName = "Unknown Entity";
+            if (entityType === "model") {
+                const m = await prisma.model.findUnique({
+                    where: { id: entityId },
+                    select: { name: true },
+                });
+                if (m) entityName = m.name;
+            } else if (entityType === "tool") {
+                const t = await prisma.tool.findUnique({
+                    where: { id: entityId },
+                    select: { name: true },
+                });
+                if (t) entityName = t.name;
+            }
+
+            await prisma.feedEvent.create({
+                data: {
+                    userId: user.id,
+                    eventType: "review_posted",
+                    entityType,
+                    entityId,
+                    entityName,
+                    metadata: { rating },
+                },
+            });
+        }
 
         return NextResponse.json({ message: "Review submitted.", data: review }, { status: 201 });
     } catch (err) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
 import { mockModels, mockFeedEvents, getUniqueProviders, getUniqueModalities, getUniqueLicenses } from "@/lib/mock-data";
 import { ModelFilters as ModelFiltersType, Model } from "@/types";
 import { ModelTable } from "@/components/models/ModelTable";
@@ -107,11 +108,22 @@ export default function HomePage() {
                         Model Leaderboard
                     </h2>
                     <div className="flex items-center gap-2">
+                        <Link
+                            href="/models/compare"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-atlas-green/10 text-atlas-green border border-atlas-green/20 rounded hover:bg-atlas-green/20 transition-all font-sans mr-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="20" x2="18" y2="10"/>
+                                <line x1="12" y1="20" x2="12" y2="4"/>
+                                <line x1="6" y1="20" x2="6" y2="14"/>
+                            </svg>
+                            Compare Models
+                        </Link>
                         <button
                             onClick={() => setView("table")}
                             className={`p-1.5 rounded transition-colors ${view === "table"
-                                    ? "text-atlas-text-primary bg-atlas-bg-tertiary"
-                                    : "text-atlas-text-muted hover:text-atlas-text-secondary"
+                                ? "text-atlas-text-primary bg-atlas-bg-tertiary"
+                                : "text-atlas-text-muted hover:text-atlas-text-secondary"
                                 }`}
                             title="Table view"
                         >
@@ -125,8 +137,8 @@ export default function HomePage() {
                         <button
                             onClick={() => setView("cards")}
                             className={`p-1.5 rounded transition-colors ${view === "cards"
-                                    ? "text-atlas-text-primary bg-atlas-bg-tertiary"
-                                    : "text-atlas-text-muted hover:text-atlas-text-secondary"
+                                ? "text-atlas-text-primary bg-atlas-bg-tertiary"
+                                : "text-atlas-text-muted hover:text-atlas-text-secondary"
                                 }`}
                             title="Card view"
                         >
@@ -150,6 +162,48 @@ export default function HomePage() {
                         licenses={getUniqueLicenses()}
                     />
                 </div>
+
+                {/* Filters Applied Indicator */}
+                <div className="flex items-center gap-3 mb-4">
+                    <span className="text-sm font-mono text-atlas-text-muted">
+                        Filters
+                        {Object.values(filters).filter(Boolean).length > 0 && (
+                            <span className="ml-1 inline-block px-2 py-0.5 rounded-full bg-atlas-blue text-white text-xs">
+                                {Object.values(filters).filter(Boolean).length}
+                            </span>
+                        )}
+                    </span>
+
+                    {Object.values(filters).filter(Boolean).length > 0 && (
+                        <button
+                            onClick={() => setFilters({})}
+                            className="text-xs text-atlas-red hover:underline"
+                        >
+                            Clear All
+                        </button>
+                    )}
+                </div>
+
+                {/* Active Filter Chips */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                    {Object.entries(filters).map(([key, value]) =>
+                        value ? (
+                            <span
+                                key={key}
+                                className="px-2 py-1 bg-atlas-bg-tertiary text-xs rounded-full flex items-center gap-1"
+                            >
+                                {key}: {String(value)}
+                                <button
+                                    onClick={() => setFilters({ ...filters, [key]: undefined })}
+                                    className="ml-1 text-atlas-red hover:text-atlas-text-primary"
+                                >
+                                    ×
+                                </button>
+                            </span>
+                        ) : null
+                    )}
+                </div>
+
 
                 {/* Results count */}
                 <div className="mb-4">

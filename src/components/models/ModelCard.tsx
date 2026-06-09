@@ -1,18 +1,21 @@
 "use client";
 
-import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor } from "@/lib/utils";
+import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor, highlightText  } from "@/lib/utils";
 import { Model } from "@/types";
 import Link from "next/link";
+import { BookmarkButton } from "@/components/ui/BookmarkButton";
 
 interface ModelCardProps {
     model: Model;
     rank?: number;
+    searchQuery?: string;
 }
 
-export function ModelCard({ model, rank }: ModelCardProps) {
+export function ModelCard({ model, rank, searchQuery }: ModelCardProps) {
     return (
         <Link href={`/models/${model.slug}`}>
-            <div className="group p-4 bg-atlas-bg-card border border-atlas-border rounded-lg hover:border-atlas-border-hover hover:bg-atlas-bg-tertiary transition-all duration-200">
+            <div className="group p-4 bg-atlas-bg-card border border-atlas-border rounded-lg hover:border-atlas-border-hover hover:bg-atlas-bg-tertiary transition-all duration-200 relative">
+                <BookmarkButton entityType="model" entityId={model.id} className="absolute top-2 right-2" />
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -24,14 +27,14 @@ export function ModelCard({ model, rank }: ModelCardProps) {
                         <div>
                             <div className="flex items-center gap-1.5">
                                 <h3 className="font-sans font-medium text-atlas-text-primary group-hover:text-atlas-green transition-colors">
-                                    {model.name}
-                                </h3>
+  {highlightText(model.name, searchQuery || "")}
+</h3>
                                 {model.isVerified && (
                                     <span className="text-atlas-green text-xs">✓</span>
                                 )}
                             </div>
                             <p className="text-xs text-atlas-text-muted">
-                                {model.provider?.name}
+                                        {highlightText(model.provider?.name || "", searchQuery || "")}
                             </p>
                         </div>
                     </div>

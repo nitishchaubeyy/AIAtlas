@@ -20,6 +20,7 @@ model User {
   contributions     Contribution[]
   votes             Vote[]
   feedEvents        FeedEvent[]
+  badges            UserBadge[]
 
   @@map("users")
 }
@@ -67,7 +68,7 @@ model Model {
   provider           Provider   @relation(fields: [providerId], references: [id])
   modelTags          ModelTag[]
   tools              Tool[]
-
+  @@unique([providerId, name])
   @@map("models")
 }
 
@@ -158,6 +159,7 @@ model Review {
 
   user         User     @relation(fields: [userId], references: [id])
 
+  @@unique([userId, entityType, entityId])
   @@map("reviews")
 }
 
@@ -203,4 +205,16 @@ model FeedEvent {
   user       User?    @relation(fields: [userId], references: [id])
 
   @@map("feed_events")
+}
+
+model UserBadge {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  badgeType String   @map("badge_type") // e.g. "NEW_CONTRIBUTOR", "ACTIVE_CONTRIBUTOR", "TOP_CONTRIBUTOR", "VERIFIED_CONTRIBUTOR"
+  awardedAt DateTime @default(now()) @map("awarded_at")
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, badgeType])
+  @@map("user_badges")
 }
