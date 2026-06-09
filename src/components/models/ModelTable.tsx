@@ -6,6 +6,7 @@ import { Model, ModelSortField } from "@/types";
 import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor } from "@/lib/utils";
 import { LiveBadge } from "./LiveBadge";
 import { modalityIcons } from "@/lib/utils";
+import { BookmarkButton } from "@/components/ui/BookmarkButton";
 
 interface ModelTableProps {
     models: Model[];
@@ -96,7 +97,9 @@ export function ModelTable({ models, showRank = true }: ModelTableProps) {
                         <SortHeader field="inputPricePerMtok">Input $/M</SortHeader>
                         <SortHeader field="outputPricePerMtok">Output $/M</SortHeader>
                         <SortHeader field="benchmarkGpqa">GPQA</SortHeader>
-                        <SortHeader field="modalities">Modalities</SortHeader>
+                        <th className="px-3 py-3 text-left font-sans font-semibold text-xs uppercase tracking-widest text-atlas-text-muted">
+                            Modalities
+                        </th>
                         <th className="px-3 py-3 text-left font-sans font-semibold text-xs uppercase tracking-widest text-atlas-text-muted">
                             License
                         </th>
@@ -120,22 +123,25 @@ export function ModelTable({ models, showRank = true }: ModelTableProps) {
                                 </td>
                             )}
                             <td className="px-3 py-3">
-                                <Link
-                                    href={`/models/${model.slug}`}
-                                    className="flex items-center gap-2 group-hover:text-atlas-green transition-colors"
-                                >
-                                    <span className="font-sans font-medium text-atlas-text-primary">
-                                        {model.name}
-                                    </span>
-                                    {model.isVerified && (
-                                        <span className="text-atlas-green text-xs" title="Verified">✓</span>
-                                    )}
-                                    {model.isOpenSource && (
-                                        <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-atlas-purple/10 text-atlas-purple border border-atlas-purple/20">
-                                            OSS
+                                <div className="flex items-center gap-3">
+                                    <Link
+                                        href={`/models/${model.slug}`}
+                                        className="flex items-center gap-2 group-hover:text-atlas-green transition-colors"
+                                    >
+                                        <span className="font-sans font-medium text-atlas-text-primary group-hover:text-atlas-green">
+                                            {model.name}
                                         </span>
-                                    )}
-                                </Link>
+                                        {model.isVerified && (
+                                            <span className="text-atlas-green text-xs" title="Verified">✓</span>
+                                        )}
+                                        {model.isOpenSource && (
+                                            <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-atlas-purple/10 text-atlas-purple border border-atlas-purple/20">
+                                                OSS
+                                            </span>
+                                        )}
+                                    </Link>
+                                    <BookmarkButton entityType="model" entityId={model.id} />
+                                </div>
                             </td>
                             <td className="px-3 py-3 text-atlas-text-secondary text-sm">
                                 {model.provider?.name ?? "—"}
