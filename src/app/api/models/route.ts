@@ -14,7 +14,6 @@ export async function GET(request: Request) {
     const license = searchParams.get("license");
     const modality = searchParams.get("modality");
     const search = searchParams.get("search");
-    const sort = searchParams.get("sort") || "benchmarkGpqa";
 
     // 💡 Robust Pagination Controls & Fallback Guards
     const DEFAULT_LIMIT = 10;
@@ -121,6 +120,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "name and provider are required" }, { status: 400 });
         }
 
+        if (typeof name !== "string" || name.trim().length === 0 || name.length > 200) {
+            return NextResponse.json(
+                { error: "name must be a non-empty string between 1 and 200 characters" },
+                { status: 400 }
+            );
+        }
+
         if (!DB_ENABLED) {
             return NextResponse.json(
                 { message: "Contribution received (DB not connected — configure DATABASE_URL to persist).", status: "pending" },
@@ -205,16 +211,19 @@ export async function POST(request: Request) {
             },
         });
 
-        // Create a feed event
-        await prisma.feedEvent.create({
-            data: {
-                userId: user.id,
-                eventType: "model_added",
-                entityType: "model",
-                entityId: model.id,
-                entityName: model.name,
-            },
-        });
+        // Only create feed event for verified models. Pending submissions should not
+        // appear in the public activity feed until reviewed and approved by maintainers.
+        if (model.isVerified) {
+            await prisma.feedEvent.create({
+                data: {
+                    userId: user.id,
+                    eventType: "model_added",
+                    entityType: "model",
+                    entityId: model.id,
+                    entityName: model.name,
+                },
+            });
+        }
 
         return NextResponse.json(
             { message: "Model submitted for review.", data: model, status: "pending" },
