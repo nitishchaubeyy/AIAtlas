@@ -27,6 +27,10 @@ export async function GET(
             return NextResponse.json({ error: "Model not found" }, { status: 404 });
         }
 
+        if (!model.isVerified) {
+            return NextResponse.json({ error: "Model not found" }, { status: 404 });
+        }
+
         const reviews = await prisma.review.findMany({
             where: { entityType: "model", entityId: model.id },
             include: { user: true },
