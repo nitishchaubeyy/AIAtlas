@@ -6,6 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import BackToTop from "@/components/ui/BackToTop";
 
 export const metadata: Metadata = {
     title: "AIAtlas — The Open Map of the AI Ecosystem",
@@ -37,6 +38,7 @@ export default function RootLayout({
                         <Navbar />
                         <main className="flex-1">{children}</main>
                         <Footer />
+                        <BackToTop />
                     </SessionProvider>
                 </ThemeProvider>
             </body>

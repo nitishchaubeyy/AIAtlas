@@ -121,6 +121,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "name and provider are required" }, { status: 400 });
         }
 
+        if (typeof name !== "string" || name.trim().length === 0 || name.length > 200) {
+            return NextResponse.json(
+                { error: "name must be a non-empty string between 1 and 200 characters" },
+                { status: 400 }
+            );
+        }
+
         if (!DB_ENABLED) {
             return NextResponse.json(
                 { message: "Contribution received.", status: "pending" },
@@ -162,7 +169,24 @@ export async function POST(request: Request) {
             },
         });
 
-        return NextResponse.json({ message: "Model submitted.", data: model }, { status: 201 });
+// Only create feed event for verified models. Pending submissions should not
+        // appear in the public activity feed until reviewed and approved by maintainers.
+        if (model.isVerified) {
+            await prisma.feedEvent.create({
+                data: {
+                    userId: user.id,
+                    eventType: "model_added",
+                    entityType: "model",
+                    entityId: model.id,
+                    entityName: model.name,
+                },
+            });
+        }
+
+        return NextResponse.json(
+            { message: "Model submitted for review.", data: model, status: "pending" },
+            { status: 201 }
+        );
     } catch (err) {
         return NextResponse.json({ error: "Failed to submit model" }, { status: 500 });
     }

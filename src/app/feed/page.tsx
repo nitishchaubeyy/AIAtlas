@@ -89,7 +89,7 @@ function FeedItem({ event }: { event: FeedEvent }) {
                     <span className="text-xs font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-atlas-bg-tertiary text-atlas-text-muted border border-atlas-border/50">
                         {config.label}
                     </span>
-                    <span className="text-xs font-mono text-atlas-text-muted">
+                    <span className="text-xs font-mono text-atlas-text-muted" suppressHydrationWarning>
                         {timeAgo(event.createdAt)}
                     </span>
                 </div>
