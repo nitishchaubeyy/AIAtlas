@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface Contributor {
     rank: number;
@@ -150,9 +151,11 @@ export default function ContributorsLeaderboard() {
                     <div className="order-2 md:order-1 p-6 bg-atlas-bg-card border border-atlas-border hover:border-atlas-border-hover rounded-xl flex flex-col items-center justify-center text-center shadow-lg relative min-h-[220px] transition-all hover:-translate-y-1">
                         <div className="absolute top-3 left-3 font-mono font-bold text-xs text-atlas-text-muted">#2</div>
                         <div className="relative">
-                            <img
+                            <Image
                                 src={topThree.second.avatar}
                                 alt={topThree.second.username}
+                                width={64}
+                                height={64}
                                 className="w-16 h-16 rounded-full border-2 border-slate-300 object-cover shadow"
                             />
                             <div className="absolute -bottom-1 -right-1 bg-slate-300 text-slate-800 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
@@ -174,9 +177,11 @@ export default function ContributorsLeaderboard() {
                     <div className="order-1 md:order-2 p-8 bg-atlas-bg-card border-2 border-atlas-amber hover:border-atlas-amber rounded-2xl flex flex-col items-center justify-center text-center shadow-2xl relative min-h-[260px] transition-all hover:-translate-y-1 bg-gradient-to-b from-atlas-amber/5 via-transparent to-transparent">
                         <div className="absolute top-3 left-3 font-mono font-bold text-sm text-atlas-amber">#1</div>
                         <div className="relative">
-                            <img
+                            <Image
                                 src={topThree.first.avatar}
                                 alt={topThree.first.username}
+                                width={64}
+                                height={64}
                                 className="w-20 h-20 rounded-full border-4 border-atlas-amber object-cover shadow-2xl"
                             />
                             <div className="absolute -bottom-1 -right-1 bg-atlas-amber text-black text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
@@ -198,9 +203,11 @@ export default function ContributorsLeaderboard() {
                     <div className="order-3 p-6 bg-atlas-bg-card border border-atlas-border hover:border-atlas-border-hover rounded-xl flex flex-col items-center justify-center text-center shadow-lg relative min-h-[200px] transition-all hover:-translate-y-1">
                         <div className="absolute top-3 left-3 font-mono font-bold text-xs text-atlas-text-muted">#3</div>
                         <div className="relative">
-                            <img
+                            <Image
                                 src={topThree.third.avatar}
                                 alt={topThree.third.username}
+                                width={64}
+                                height={64}
                                 className="w-16 h-16 rounded-full border-2 border-amber-600 object-cover shadow"
                             />
                             <div className="absolute -bottom-1 -right-1 bg-amber-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
@@ -273,9 +280,11 @@ export default function ContributorsLeaderboard() {
                                         </td>
                                         <td className="px-4 py-4">
                                             <div className="flex items-center gap-3">
-                                                <img
+                                                <Image
                                                     src={c.avatar}
                                                     alt={c.username}
+                                                    width={64}
+                                                    height={64}
                                                     className="w-8 h-8 rounded-full object-cover border border-atlas-border"
                                                 />
                                                 <div>
