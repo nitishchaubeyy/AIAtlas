@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Model } from "@/types";
 import { mockModels } from "@/lib/mock-data";
 import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor } from "@/lib/utils";
-import jsPDF from "jspdf";
+
 
 export function CompareDashboard() {
     const searchParams = useSearchParams();
@@ -267,85 +267,7 @@ License: ${m.license ?? "—"}
         URL.revokeObjectURL(url);
     };
 
-    const exportPDF = () => {
-        if (selectedModels.length === 0) return;
-
-        const pdf = new jsPDF();
-
-        let y = 20;
-
-        pdf.setFontSize(18);
-        pdf.text("AI Atlas - Model Comparison", 10, y);
-
-        y += 10;
-
-        pdf.setFontSize(10);
-        pdf.text(
-            `Generated on: ${new Date().toLocaleString()}`,
-            10,
-            y
-        );
-
-        y += 15;
-
-        selectedModels.forEach((model) => {
-            pdf.setFontSize(12);
-
-            pdf.text(`Model: ${model.name}`, 10, y);
-            y += 8;
-
-            pdf.setFontSize(10);
-
-            pdf.text(
-                `Developer: ${model.provider?.name ?? "—"}`,
-                10,
-                y
-            );
-            y += 6;
-
-            pdf.text(
-                `Context Window: ${formatContextWindow(model.contextWindow)}`,
-                10,
-                y
-            );
-            y += 6;
-
-            pdf.text(
-                `Input Price: ${formatPrice(model.inputPricePerMtok)}`,
-                10,
-                y
-            );
-            y += 6;
-
-            pdf.text(
-                `Output Price: ${formatPrice(model.outputPricePerMtok)}`,
-                10,
-                y
-            );
-            y += 6;
-
-            pdf.text(
-                `GPQA Score: ${formatBenchmark(model.benchmarkGpqa)}`,
-                10,
-                y
-            );
-            y += 6;
-
-            pdf.text(
-                `License: ${model.license ?? "—"}`,
-                10,
-                y
-            );
-            y += 12;
-
-            if (y > 260) {
-                pdf.addPage();
-                y = 20;
-            }
-        });
-
-        pdf.save("ai-model-comparison.pdf");
-    };
+    
 
     return (
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
@@ -431,12 +353,7 @@ License: ${m.license ?? "—"}
                             >
                                 Export as TXT
                             </button>
-                            <button
-                                onClick={exportPDF}
-                                className="w-full text-left px-3 py-2 text-xs text-atlas-text-secondary hover:text-atlas-text-primary hover:bg-atlas-bg-tertiary border-t border-atlas-border/50 transition-colors"
-                            >
-                                Export as PDF
-                            </button>
+                            
                         </div>
                     </div>
 
