@@ -115,3 +115,9 @@
     background-size: 64px 64px;
   }
 }
+
+@media (max-width: 768px) {
+    main {
+        padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+    }
+}
