@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { FeedEvent } from "@/types";
 import { subscribeToFeed } from "@/lib/realtime";
+import { useToast } from "@/components/providers/ToastProvider";
 
 /**
  * Fetches the initial feed from the API and then subscribes to
@@ -12,6 +13,14 @@ import { subscribeToFeed } from "@/lib/realtime";
 export function useLiveFeed(initialEvents: FeedEvent[] = []) {
     const [events, setEvents] = useState<FeedEvent[]>(initialEvents);
     const [isLoading, setIsLoading] = useState(initialEvents.length === 0);
+
+    let addToast: ((event: FeedEvent) => void) | undefined;
+    try {
+        const toast = useToast();
+        addToast = toast.addToast;
+    } catch {
+        // Fallback when hook is used outside ToastProvider
+    }
 
     useEffect(() => {
         let active = true;
@@ -50,12 +59,18 @@ export function useLiveFeed(initialEvents: FeedEvent[] = []) {
         const channel = subscribeToFeed((raw) => {
             const event = raw as unknown as FeedEvent;
             setEvents((prev) => [event, ...prev].slice(0, 100));
+            
+            // Trigger the global toast notification
+            if (addToast) {
+                addToast(event);
+            }
         });
 
         return () => {
             channel?.unsubscribe();
         };
-    }, []);
+    }, [addToast]);
 
     return { events, isLoading };
 }
+

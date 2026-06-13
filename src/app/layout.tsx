@@ -6,6 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { ToastProvider } from "@/components/providers/ToastProvider";
 import BackToTop from "@/components/ui/BackToTop";
 
 export const metadata: Metadata = {
@@ -35,13 +36,16 @@ export default function RootLayout({
             >
                 <ThemeProvider>
                     <SessionProvider>
-                        <Navbar />
-                        <main className="flex-1">{children}</main>
-                        <Footer />
-                        <BackToTop />
+                        <ToastProvider>
+                            <Navbar />
+                            <main className="flex-1">{children}</main>
+                            <Footer />
+                            <BackToTop />
+                        </ToastProvider>
                     </SessionProvider>
                 </ThemeProvider>
             </body>
         </html>
     );
 }
+
