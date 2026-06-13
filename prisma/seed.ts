@@ -70,9 +70,30 @@ async function main() {
         { slug: "llama-3-3-70b", name: "Llama 3.3 70B", providerId: providerMap["Meta AI"], contextWindow: 128000, inputPricePerMtok: 0.59, outputPricePerMtok: 0.79, benchmarkGpqa: 71.2, benchmarkMmlu: 80.4, license: "Llama Community", modalities: ["text"], isOpenSource: true, parameterCount: "70B", speedToksPerSec: 110, isVerified: true, tags: ["open-source", "efficient"] },
         { slug: "gemini-2-5-flash", name: "Gemini 2.5 Flash", providerId: providerMap["Google DeepMind"], contextWindow: 1000000, inputPricePerMtok: 0.30, outputPricePerMtok: 2.5, benchmarkGpqa: 70.5, benchmarkMmlu: 78.2, license: "Proprietary", modalities: ["text", "image"], isOpenSource: false, speedToksPerSec: 150, isVerified: true, tags: ["fast", "efficient", "long-context"] },
         { slug: "mistral-small-3", name: "Mistral Small 3", providerId: providerMap["Mistral AI"], contextWindow: 32000, inputPricePerMtok: 0.1, outputPricePerMtok: 0.3, benchmarkGpqa: 62.1, benchmarkMmlu: 72.5, license: "Apache 2.0", modalities: ["text"], isOpenSource: true, parameterCount: "24B", speedToksPerSec: 130, isVerified: true, tags: ["open-source", "compact", "efficient"] },
+ feat/add-your-model
+        { slug: "gpt-4o-mini", name: "GPT-4o mini", providerId: providerMap["OpenAI"], contextWindow: 128000, inputPricePerMtok: 0.15, outputPricePerMtok: 0.6, benchmarkGpqa: 65.2, benchmarkMmlu: 82.0, license: "Proprietary", modalities: ["text", "image"], isOpenSource: false, speedToksPerSec: 120, isVerified: true, tags: ["efficient", "affordable"] },
+        { slug: "claude-haiku-3-5", name: "Claude Haiku 3.5", providerId: providerMap["Anthropic"], contextWindow: 200000, inputPricePerMtok: 0.25, outputPricePerMtok: 1.25, benchmarkGpqa: 60.8, benchmarkMmlu: 75.3, license: "Proprietary", modalities: ["text"], isOpenSource: false, speedToksPerSec: 140, isVerified: true, tags: ["fast", "affordable"] },
+        {
+  slug: "claude-3-5-sonnet",
+  name: "Claude 3.5 Sonnet",
+  providerId: providerMap["Anthropic"],
+  contextWindow: 200000,
+  inputPricePerMtok: 3.0,
+  outputPricePerMtok: 15.0,
+  license: "Proprietary",
+  modalities: ["text", "image"],
+  isOpenSource: false,
+  benchmarkGpqa: 84.1,
+  benchmarkMmlu: 88.5,
+  speedToksPerSec: 72,
+  isVerified: false,
+  tags: ["coding", "balanced"],
+},
+
         { slug: "gpt-4o-mini", name: "GPT-4o mini", providerId: providerMap["OpenAI"], contextWindow: 128000, inputPricePerMtok: 0.15, outputPricePerMtok: 0.60, benchmarkGpqa: 65.2, benchmarkMmlu: 82.0, license: "Proprietary", modalities: ["text", "image"], isOpenSource: false, speedToksPerSec: 120, isVerified: true, tags: ["efficient", "affordable"] },
         { slug: "claude-haiku-3-5", name: "Claude Haiku 3.5", providerId: providerMap["Anthropic"], contextWindow: 200000, inputPricePerMtok: 0.80, outputPricePerMtok: 4.00, benchmarkGpqa: 60.8, benchmarkMmlu: 75.3, license: "Proprietary", modalities: ["text"], isOpenSource: false, speedToksPerSec: 140, isVerified: true, tags: ["fast", "affordable"] },
         { slug: "mistral-nemo", name: "Mistral NeMo", providerId: providerMap["Mistral AI"], contextWindow: 128000, inputPricePerMtok: 0.15, outputPricePerMtok: 0.15, benchmarkGpqa: 64.5, benchmarkMmlu: 76.0, license: "Apache 2.0", modalities: ["text"], isOpenSource: true, parameterCount: "12B", speedToksPerSec: 145, isVerified: true, tags: ["coding", "lightweight", "open-source"]}
+ main
     ];
 
     for (const model of modelData) {

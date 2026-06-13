@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor, highlightText  } from "@/lib/utils";
+import { cn, formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor, highlightText, getPriceChangeIndicator  } from "@/lib/utils";
 import { Model } from "@/types";
 import Link from "next/link";
 import { BookmarkButton } from "@/components/ui/BookmarkButton";
@@ -59,17 +59,41 @@ export function ModelCard({ model, rank, searchQuery }: ModelCardProps) {
                             {formatContextWindow(model.contextWindow)}
                         </p>
                     </div>
-                    <div>
+                   <div>
                         <p className="text-[10px] font-mono uppercase tracking-wider text-atlas-text-muted">Input</p>
-                        <p className="font-mono text-sm text-atlas-text-secondary">
-                            {formatPrice(model.inputPricePerMtok)}
-                        </p>
+                        <div className="flex items-center gap-1">
+                            <p className="font-mono text-sm text-atlas-text-secondary">
+                                {formatPrice(model.inputPricePerMtok)}
+                            </p>
+                            {/* Input Price Indicator */}
+                            {(() => {
+                                const indicator = getPriceChangeIndicator(model.inputPricePerMtok, model.previousInputPrice, model.priceChangedAt);
+                                if (!indicator) return null;
+                                return (
+                                    <span title={indicator.tooltip} className={cn("text-xs font-bold cursor-help transition-transform hover:scale-110", indicator.colorClass)}>
+                                        {indicator.symbol}
+                                    </span>
+                                );
+                            })()}
+                        </div>
                     </div>
                     <div>
                         <p className="text-[10px] font-mono uppercase tracking-wider text-atlas-text-muted">Output</p>
-                        <p className="font-mono text-sm text-atlas-text-secondary">
-                            {formatPrice(model.outputPricePerMtok)}
-                        </p>
+                        <div className="flex items-center gap-1">
+                            <p className="font-mono text-sm text-atlas-text-secondary">
+                                {formatPrice(model.outputPricePerMtok)}
+                            </p>
+                            {/* Output Price Indicator */}
+                            {(() => {
+                                const indicator = getPriceChangeIndicator(model.outputPricePerMtok, model.previousOutputPrice, model.priceChangedAt);
+                                if (!indicator) return null;
+                                return (
+                                    <span title={indicator.tooltip} className={cn("text-xs font-bold cursor-help transition-transform hover:scale-110", indicator.colorClass)}>
+                                        {indicator.symbol}
+                                    </span>
+                                );
+                            })()}
+                        </div>
                     </div>
                 </div>
 

@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { Footer } from "@/components/layout/Footer";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { ToastProvider } from "@/components/providers/ToastProvider";
 import BackToTop from "@/components/ui/BackToTop";
 
 export const metadata: Metadata = {
@@ -49,3 +50,4 @@ export default function RootLayout({
         </html>
     );
 }
+
