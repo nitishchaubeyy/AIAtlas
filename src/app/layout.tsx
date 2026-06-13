@@ -36,11 +36,13 @@ export default function RootLayout({
             >
                 <ThemeProvider>
                     <SessionProvider>
-                        <Navbar />
-                        <main className="flex-1">{children}</main>
-                        <Footer />
-                        <BottomNav />
-                        <BackToTop />
+                        <ToastProvider>
+                            <Navbar />
+                            <main className="flex-1">{children}</main>
+                            <Footer />
+                            <BottomNav />
+                            <BackToTop />
+                        </ToastProvider>
                     </SessionProvider>
                 </ThemeProvider>
             </body>
