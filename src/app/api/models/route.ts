@@ -33,8 +33,8 @@ const cursor = searchParams.get("cursor");
         "inputPricePerMtok", "outputPricePerMtok", "speedToksPerSec", "createdAt",
     ];
     const rawSort = searchParams.get("sort") ?? "";
-    const sort = allowedSorts.includes(rawSort) ? rawSort : "benchmarkGpqa";
-// Removed duplicate limit definition
+const sortValidated = allowedSorts.includes(rawSort) ? rawSort : "benchmarkGpqa";
+    // Removed duplicate limit definition
 
     if (!DB_ENABLED) {
         // Fallback: filter mock data
@@ -52,8 +52,8 @@ const cursor = searchParams.get("cursor");
             );
         }
         result.sort((a, b) => {
-            const aVal = (a as any)[sort];
-            const bVal = (b as any)[sort];
+            const aVal = (a as unknown as Record<string, unknown>)[sortValidated];
+            const bVal = (b as unknown as Record<string, unknown>)[sortValidated];
             if (aVal === undefined || aVal === null) return 1;
             if (bVal === undefined || bVal === null) return -1;
             return (bVal as number) - (aVal as number);
@@ -80,10 +80,13 @@ const cursor = searchParams.get("cursor");
             ];
         }
 
+// sortValidated is already validated against allowedSorts above.
+        const orderField = sortValidated;
+
         const queryOptions: Prisma.ModelFindManyArgs = {
             where,
             include: { provider: true },
-            orderBy: [{ [sort]: "desc" }, { id: "asc" }],
+            orderBy: [{ [orderField]: "desc" }, { id: "asc" }],
             take: limit,
         };
 

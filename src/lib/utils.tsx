@@ -79,9 +79,33 @@ export function highlightText(text: string, query: string) {
     );
 }
 
+export function getPriceChangeIndicator(
+    current: number | null | undefined, 
+    previous: number | null | undefined, 
+    changedAt: string | Date | null | undefined
+) {
+    if (current == null || previous == null || !changedAt) return null;
+
+    const changeDate = new Date(changedAt);
+    const now = new Date();
+    const daysSinceChange = (now.getTime() - changeDate.getTime()) / (1000 * 3600 * 24);
+
+    // Only show if changed in the last 30 days, and the price actually differs
+    if (daysSinceChange > 30 || current === previous) return null;
+
+    const isDecrease = current < previous;
+    
+    return {
+        symbol: isDecrease ? "↓" : "↑",
+        colorClass: isDecrease ? "text-atlas-green" : "text-red-500",
+        tooltip: `Price ${isDecrease ? 'decreased' : 'increased'} from $${previous.toFixed(2)} to $${current.toFixed(2)} on ${changeDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
+    };
+}
+
 export const modalityIcons: Record<string, string> = {
   text: "📄",
   image: "🖼️",
   audio: "🔊",
   video: "🎥",
 };
+

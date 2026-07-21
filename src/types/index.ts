@@ -49,6 +49,9 @@ export interface Model {
     updatedAt: string;
     provider?: Provider;
     reviews?: Review[];
+    previousInputPrice?: number | null;
+    previousOutputPrice?: number | null;
+    priceChangedAt?: string | null;
 }
 
 export interface ModelTag {

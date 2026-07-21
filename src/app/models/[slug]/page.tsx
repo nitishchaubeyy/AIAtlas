@@ -7,6 +7,7 @@ import { formatPrice, formatContextWindow, formatBenchmark, getBenchmarkColor, c
 import { ReviewSection } from "@/components/models/ReviewSection";
 import { ModelDetailSkeleton } from "@/components/ui/Skeletons";
 import { Model } from "@/types";
+import { ShareButton } from "@/components/ui/ShareButton";
 
 export default function ModelDetailPage() {
     const params = useParams();
@@ -86,20 +87,24 @@ export default function ModelDetailPage() {
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <h1 className="text-3xl font-sans font-bold text-atlas-text-primary">
-                                {model.name}
-                            </h1>
-                            {model.isVerified && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono uppercase tracking-wider bg-atlas-green/10 text-atlas-green border border-atlas-green/20 rounded">
-                                    ✓ Verified
-                                </span>
-                            )}
-                            {model.isOpenSource && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono uppercase tracking-wider bg-atlas-purple/10 text-atlas-purple border border-atlas-purple/20 rounded">
-                                    Open Source
-                                </span>
-                            )}
-                        </div>
+    <h1 className="text-3xl font-sans font-bold text-atlas-text-primary">
+        {model.name}
+    </h1>
+
+    {model.isVerified && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono uppercase tracking-wider bg-atlas-green/10 text-atlas-green border border-atlas-green/20 rounded">
+            ✓ Verified
+        </span>
+    )}
+
+    {model.isOpenSource && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono uppercase tracking-wider bg-atlas-purple/10 text-atlas-purple border border-atlas-purple/20 rounded">
+            Open Source
+        </span>
+    )}
+
+    <ShareButton title={model.name} />
+</div>
                         <p className="text-sm text-atlas-text-secondary mb-3">
                             by{" "}
                             <span className="text-atlas-text-primary font-medium">

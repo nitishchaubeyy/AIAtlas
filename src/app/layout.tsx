@@ -3,9 +3,11 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { Footer } from "@/components/layout/Footer";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { ToastProvider } from "@/components/providers/ToastProvider";
 import BackToTop from "@/components/ui/BackToTop";
 
 export const metadata: Metadata = {
@@ -35,13 +37,17 @@ export default function RootLayout({
             >
                 <ThemeProvider>
                     <SessionProvider>
-                        <Navbar />
-                        <main className="flex-1">{children}</main>
-                        <Footer />
-                        <BackToTop />
+                        <ToastProvider>
+                            <Navbar />
+                            <main className="flex-1">{children}</main>
+                            <Footer />
+                            <BottomNav />
+                            <BackToTop />
+                        </ToastProvider>
                     </SessionProvider>
                 </ThemeProvider>
             </body>
         </html>
     );
 }
+
